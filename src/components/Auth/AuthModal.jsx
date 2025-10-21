@@ -77,7 +77,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
 
   const handleTwitterAuth = async() => {
      try {
-      const response = await fetch('https://xcallback-backend.onrender.com/');
+      const response = await fetch('https://xcallback-backend.onrender.com/auth');
       const data = await response.json();
       
       // Redirect to Twitter OAuth URL

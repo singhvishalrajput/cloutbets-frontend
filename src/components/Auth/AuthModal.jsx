@@ -77,13 +77,42 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }) => {
 
   const handleTwitterAuth = async() => {
      try {
-      const response = await fetch('https://xcallback-backend.onrender.com/auth');
-      const data = await response.json();
+      // const response = await fetch('https://xcallback-backend.onrender.com/auth');
+      // const data = await response.json();
       
-      // Redirect to Twitter OAuth URL
-      if (data.oauth_url) {
-        window.location.href = data.oauth_url;
+      // // Redirect to Twitter OAuth URL
+      // if (data.oauth_url) {
+      //   window.location.href = data.oauth_url;
+      // }
+
+      // Step 1: Generate PKCE challenge
+    async function generatePKCE() {
+      function base64URLEncode(str) {
+        return btoa(String.fromCharCode(...new Uint8Array(str)))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=+$/, '');
       }
+
+      async function sha256(buffer) {
+        return await crypto.subtle.digest('SHA-256', buffer);
+      }
+
+      const code_verifier = base64URLEncode(crypto.getRandomValues(new Uint8Array(32)));
+      const code_challenge = base64URLEncode(await sha256(new TextEncoder().encode(code_verifier)));
+
+          localStorage.setItem('code_verifier', code_verifier);
+          return code_challenge;
+        }
+
+        // Step 2: Call backend to get auth URL
+        const code_challenge = await generatePKCE();
+        const res = await fetch(`https://xcallback-backend.onrender.com/auth?code_challenge=${code_challenge}`);
+        const data = await res.json();
+
+        // Step 3: Redirect user to X login page
+        window.location.href = data.oauth_url;
+
         
     } catch (error) {
       console.error('Error initiating OAuth:', error);

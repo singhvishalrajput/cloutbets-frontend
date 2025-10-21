@@ -363,7 +363,7 @@ const ExplorePools = () => {
   if (selectedPool) {
     return (
       <div className="min-h-screen pt-24 pb-12" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-        <div className="max-w-7xl mx-auto px-4">
+        <div className="max-w-6xl mx-auto px-4">
           {/* Back Button */}
           <button
             onClick={handleBackToGrid}
@@ -601,7 +601,7 @@ const ExplorePools = () => {
   // Grid view - when no pool is selected
   return (
     <div className="min-h-screen pt-24 pb-12" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <div className="max-w-7xl mx-auto px-4">
+      <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>

@@ -27,7 +27,7 @@ const HomePage = ({ onScroll, onCreatePool }) => (
 const AppContent = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
-  const { isAuthenticated } = useAuthStore();
+  const { isAuthenticated, login } = useAuthStore();
   const navigate = useNavigate();
   const { initTheme } = useThemeStore();
   
@@ -38,6 +38,58 @@ const AppContent = () => {
     }
     navigate('/create-pool');
   };
+
+  // Handle OAuth callback from X (Twitter)
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const code = urlParams.get("code");
+
+    if (code) {
+      async function exchangeCodeForUser(code) {
+        const code_verifier = localStorage.getItem("code_verifier");
+
+        if (!code_verifier) {
+          alert("Missing code_verifier. Please try logging in again.");
+          return;
+        }
+
+        try {
+          const response = await fetch("https://xcallback-backend.onrender.com/exchange", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ code, code_verifier }),
+            credentials: "include",
+          });
+
+          const data = await response.json();
+
+          if (response.ok) {
+            console.log("✅ Login successful:", data);
+            
+            // Store user data in localStorage
+            localStorage.setItem("user", JSON.stringify(data.user));
+            
+            // Update auth store
+            login(data.user);
+            
+            // Remove ?code= from URL
+            window.history.replaceState({}, document.title, "/");
+            
+            // Navigate to profile or home
+            navigate('/profile');
+          } else {
+            console.error("❌ Login failed:", data.error);
+            alert("Login failed: " + data.error);
+          }
+        } catch (err) {
+          console.error("❌ Exchange error:", err);
+          alert("An error occurred during login. Please try again.");
+        }
+      }
+      
+      exchangeCodeForUser(code);
+    }
+  }, [login, navigate]);
 
   useEffect(() => {
     const handleScroll = () => {

@@ -158,8 +158,8 @@ const ExplorePools = () => {
   };
 
   return (
-    <div className="min-h-screen pt-20 pb-12" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-      <div className="max-w-7xl mx-auto px-4">
+    <div className="min-h-screen pt-24 pb-12" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
+      <div className="max-w-6xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2" style={{ color: 'var(--text-primary)' }}>
@@ -199,7 +199,7 @@ const ExplorePools = () => {
           </div>
         </div>
 
-        {/* Stats Bar */}
+        {/* Stats Bar
         <div className="rounded-lg p-4 mb-6" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div>
@@ -227,7 +227,7 @@ const ExplorePools = () => {
               </p>
             </div>
           </div>
-        </div>
+        </div> */}
 
         {/* Pools Grid */}
         {currentPools.length === 0 ? (

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Twitter, Youtube, Music, Video, TrendingUp, Users, Clock, ArrowRight, ArrowLeft, ExternalLink, Trophy, Play } from 'lucide-react';
+import TweetEmbed from '../common/TweetEmbed';
 
 const PLATFORMS = [
   { id: 'all', name: 'All Platforms', icon: TrendingUp },
@@ -136,10 +137,11 @@ const MOCK_POOLS = [
 const ExplorePools = () => {
   const [selectedPlatform, setSelectedPlatform] = useState('twitter');
   const [currentPage, setCurrentPage] = useState(1);
+  const [expandedPool, setExpandedPool] = useState(null);
   const poolsPerPage = 9;
 
-  const filteredPools = selectedPlatform === 'all' 
-    ? MOCK_POOLS 
+  const filteredPools = selectedPlatform === 'all'
+    ? MOCK_POOLS
     : MOCK_POOLS.filter(pool => pool.platform === selectedPlatform);
 
   const indexOfLastPool = currentPage * poolsPerPage;
@@ -180,15 +182,14 @@ const ExplorePools = () => {
                 <button
                   key={platform.id}
                   onClick={() => handlePlatformChange(platform.id)}
-                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                      : 'hover:bg-opacity-80'
-                  }`}
-                  style={isActive ? undefined : { 
-                    backgroundColor: 'var(--bg-secondary)', 
-                    color: 'var(--text-primary)', 
-                    border: '1px solid var(--border-color)' 
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                    : 'hover:bg-opacity-80'
+                    }`}
+                  style={isActive ? undefined : {
+                    backgroundColor: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    border: '1px solid var(--border-color)'
                   }}
                 >
                   <Icon className="h-4 w-4" />
@@ -240,7 +241,7 @@ const ExplorePools = () => {
           <>
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
               {currentPools.map(pool => (
-                <div 
+                <div
                   key={pool.id}
                   className="rounded-lg overflow-hidden transition-all hover:shadow-lg"
                   style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}
@@ -248,15 +249,15 @@ const ExplorePools = () => {
                   {/* Thumbnail/Video Section */}
                   {pool.hasVideo && pool.thumbnail && (
                     <div className="relative aspect-video w-full overflow-hidden group">
-                      <img 
-                        src={pool.thumbnail} 
+                      <img
+                        src={pool.thumbnail}
                         alt={pool.title}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                         <Play className="h-12 w-12 text-white" />
                       </div>
-                      <a 
+                      <a
                         href={pool.contentUrl}
                         target="_blank"
                         rel="noopener noreferrer"
@@ -284,14 +285,12 @@ const ExplorePools = () => {
                         </div>
                       </div>
                       {!pool.hasVideo && (
-                        <a 
-                          href={pool.contentUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-blue-600 hover:text-blue-700"
+                        <button
+                          onClick={() => setExpandedPool(expandedPool === pool.id ? null : pool.id)}
+                          className="text-blue-600 hover:text-blue-700 transition-colors"
                         >
                           <ExternalLink className="h-4 w-4" />
-                        </a>
+                        </button>
                       )}
                     </div>
 
@@ -311,7 +310,7 @@ const ExplorePools = () => {
                         </span>
                       </div>
                       <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                        <div 
+                        <div
                           className="bg-gradient-to-r from-blue-600 to-purple-600 h-1.5 transition-all duration-500"
                           style={{ width: `${Math.min((pool.currentValue / pool.targetValue) * 100, 100)}%` }}
                         />
@@ -357,6 +356,13 @@ const ExplorePools = () => {
                       <ArrowRight className="h-4 w-4" />
                     </button>
                   </div>
+
+                  {/* Expanded Twitter Embed */}
+                  {expandedPool === pool.id && pool.platform === 'twitter' && (
+                    <div className="mt-4 p-4 rounded-lg" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+                      <TweetEmbed tweetUrl={pool.contentUrl} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -367,13 +373,12 @@ const ExplorePools = () => {
                 <button
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className={`p-2 rounded-md transition-all ${
-                    currentPage === 1 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:bg-blue-600 hover:text-white'
-                  }`}
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)', 
+                  className={`p-2 rounded-md transition-all ${currentPage === 1
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-blue-600 hover:text-white'
+                    }`}
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border-color)'
                   }}
@@ -386,13 +391,12 @@ const ExplorePools = () => {
                     <button
                       key={index + 1}
                       onClick={() => handlePageChange(index + 1)}
-                      className={`w-8 h-8 rounded-md text-sm font-semibold transition-all ${
-                        currentPage === index + 1
-                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
-                          : 'hover:bg-blue-100'
-                      }`}
-                      style={currentPage === index + 1 ? undefined : { 
-                        backgroundColor: 'var(--bg-secondary)', 
+                      className={`w-8 h-8 rounded-md text-sm font-semibold transition-all ${currentPage === index + 1
+                        ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                        : 'hover:bg-blue-100'
+                        }`}
+                      style={currentPage === index + 1 ? undefined : {
+                        backgroundColor: 'var(--bg-secondary)',
                         color: 'var(--text-primary)',
                         border: '1px solid var(--border-color)'
                       }}
@@ -405,13 +409,12 @@ const ExplorePools = () => {
                 <button
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className={`p-2 rounded-md transition-all ${
-                    currentPage === totalPages 
-                      ? 'opacity-50 cursor-not-allowed' 
-                      : 'hover:bg-blue-600 hover:text-white'
-                  }`}
-                  style={{ 
-                    backgroundColor: 'var(--bg-secondary)', 
+                  className={`p-2 rounded-md transition-all ${currentPage === totalPages
+                    ? 'opacity-50 cursor-not-allowed'
+                    : 'hover:bg-blue-600 hover:text-white'
+                    }`}
+                  style={{
+                    backgroundColor: 'var(--bg-secondary)',
                     color: 'var(--text-primary)',
                     border: '1px solid var(--border-color)'
                   }}

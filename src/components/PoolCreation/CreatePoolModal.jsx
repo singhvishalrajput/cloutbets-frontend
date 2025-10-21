@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, ArrowLeft, CheckCircle2, Zap, ExternalLink, Loader } from 'lucide-react';
 import Container from '../common/Container';
+import TweetEmbed from '../common/TweetEmbed';
 
 const CreatePoolModal = () => {
   const [step, setStep] = useState(1);
@@ -27,18 +28,27 @@ const CreatePoolModal = () => {
   useEffect(() => {
     if (formData.contentUrl.trim()) {
       setIsLoadingPreview(true);
-      // Simulate API call delay
       const timer = setTimeout(() => {
-        const mockPreview = {
-          title: 'Sample Content Title',
-          description: 'This is a preview of the content from the URL. In production, this would fetch real data from the platform.',
-          author: '@username',
-          thumbnail: null,
-          platform: formData.platform
-        };
-        setContentPreview(mockPreview);
+        const isTwitterUrl = formData.contentUrl.includes('twitter.com') || formData.contentUrl.includes('x.com');
+        if (formData.platform === 'twitter' && isTwitterUrl) {
+          setContentPreview({
+            type: 'twitter',
+            url: formData.contentUrl,
+            platform: formData.platform
+          });
+        } else {
+          const mockPreview = {
+            type: 'mock',
+            title: 'Sample Content Title',
+            description: 'This is a preview of the content from the URL. In production, this would fetch real data from the platform.',
+            author: '@username',
+            thumbnail: null,
+            platform: formData.platform
+          };
+          setContentPreview(mockPreview);
+        }
         setIsLoadingPreview(false);
-      }, 800);
+      }, 100);
       return () => clearTimeout(timer);
     } else {
       setContentPreview(null);
@@ -113,8 +123,8 @@ const CreatePoolModal = () => {
 
   return (
     <div className="min-h-screen" style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)' }}>
-    
-      
+
+
       <div className="max-w-5xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-2 mt-16">
@@ -173,27 +183,31 @@ const CreatePoolModal = () => {
                     </div>
                   ) : contentPreview ? (
                     <div className="w-full">
-                      <div className="rounded-lg p-5 shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
-                              {contentPreview.platform[0].toUpperCase()}
+                      {contentPreview.type === 'twitter' ? (
+                        <TweetEmbed tweetUrl={contentPreview.url} />
+                      ) : (
+                        <div className="rounded-lg p-5 shadow-sm" style={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}>
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full flex items-center justify-center text-white font-bold">
+                                {contentPreview.platform[0].toUpperCase()}
+                              </div>
+                              <div>
+                                <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{contentPreview.author}</p>
+                                <p className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{contentPreview.platform}</p>
+                              </div>
                             </div>
-                            <div>
-                              <p className="font-semibold" style={{ color: 'var(--text-primary)' }}>{contentPreview.author}</p>
-                              <p className="text-xs capitalize" style={{ color: 'var(--text-secondary)' }}>{contentPreview.platform}</p>
-                            </div>
+                            <ExternalLink className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
                           </div>
-                          <ExternalLink className="h-4 w-4" style={{ color: 'var(--text-secondary)' }} />
+                          <h4 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{contentPreview.title}</h4>
+                          <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{contentPreview.description}</p>
+                          <div className="flex gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
+                            <span>👍 0 likes</span>
+                            <span>💬 0 comments</span>
+                            <span>🔄 0 shares</span>
+                          </div>
                         </div>
-                        <h4 className="font-bold mb-2" style={{ color: 'var(--text-primary)' }}>{contentPreview.title}</h4>
-                        <p className="text-sm mb-3" style={{ color: 'var(--text-secondary)' }}>{contentPreview.description}</p>
-                        <div className="flex gap-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                          <span>👍 0 likes</span>
-                          <span>💬 0 comments</span>
-                          <span>🔄 0 shares</span>
-                        </div>
-                      </div>
+                      )}
                       <p className="text-xs mt-3 text-center" style={{ color: 'var(--text-secondary)' }}>Preview • Actual metrics will be tracked live</p>
                     </div>
                   ) : (
@@ -241,10 +255,9 @@ const CreatePoolModal = () => {
                       name="contentUrl"
                       value={formData.contentUrl}
                       onChange={handleInputChange}
-                      placeholder="https://twitter.com/..."
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.contentUrl ? 'border-red-500' : ''
-                      }`}
+                      placeholder="https://twitter.com/... or https://x.com/..."
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.contentUrl ? 'border-red-500' : ''
+                        }`}
                       style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: errors.contentUrl ? undefined : 'var(--border-color)' }}
                     />
                     {errors.contentUrl && (
@@ -265,9 +278,8 @@ const CreatePoolModal = () => {
                       value={formData.poolTitle}
                       onChange={handleInputChange}
                       placeholder="e.g., Will this tweet reach 10k likes?"
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.poolTitle ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.poolTitle ? 'border-red-500' : ''
+                        }`}
                       style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: errors.poolTitle ? undefined : 'var(--border-color)' }}
                     />
                     {errors.poolTitle && (
@@ -286,9 +298,8 @@ const CreatePoolModal = () => {
                       onChange={handleInputChange}
                       placeholder="Describe what users are betting on and any important details..."
                       rows="2"
-                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${
-                        errors.description ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none ${errors.description ? 'border-red-500' : ''
+                        }`}
                       style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: errors.description ? undefined : 'var(--border-color)' }}
                     />
                     {errors.description && (
@@ -315,11 +326,10 @@ const CreatePoolModal = () => {
                       <button
                         key={m}
                         onClick={() => handleSelectChange('metric', m.toLowerCase())}
-                        className={`py-2 px-3 rounded-lg font-semibold transition-all ${
-                          formData.metric === m.toLowerCase()
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                            : 'hover:bg-gray-200'
-                        }`}
+                        className={`py-2 px-3 rounded-lg font-semibold transition-all ${formData.metric === m.toLowerCase()
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                          : 'hover:bg-gray-200'
+                          }`}
                         style={formData.metric === m.toLowerCase() ? undefined : { backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
                       >
                         {m}
@@ -341,9 +351,8 @@ const CreatePoolModal = () => {
                       onChange={handleInputChange}
                       placeholder="e.g., 10000"
                       min="1"
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.targetValue ? 'border-red-500' : ''
-                      }`}
+                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.targetValue ? 'border-red-500' : ''
+                        }`}
                       style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: errors.targetValue ? undefined : 'var(--border-color)' }}
                     />
                   </div>
@@ -365,11 +374,10 @@ const CreatePoolModal = () => {
                       <button
                         key={d}
                         onClick={() => handleSelectChange('duration', d)}
-                        className={`py-2 rounded-lg font-semibold transition-all ${
-                          formData.duration === d
-                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
-                            : 'hover:bg-gray-200'
-                        }`}
+                        className={`py-2 rounded-lg font-semibold transition-all ${formData.duration === d
+                          ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
+                          : 'hover:bg-gray-200'
+                          }`}
                         style={formData.duration === d ? undefined : { backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', border: '1px solid var(--border-color)' }}
                       >
                         {d}
@@ -403,9 +411,8 @@ const CreatePoolModal = () => {
                       placeholder="Amount"
                       min="0.01"
                       step="0.01"
-                      className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                        errors.initialBetAmount ? 'border-red-500' : ''
-                      }`}
+                      className={`flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.initialBetAmount ? 'border-red-500' : ''
+                        }`}
                       style={{ backgroundColor: 'var(--bg-primary)', color: 'var(--text-primary)', borderColor: errors.initialBetAmount ? undefined : 'var(--border-color)' }}
                     />
                   </div>
@@ -424,7 +431,7 @@ const CreatePoolModal = () => {
           {step === 3 && (
             <div className="max-w-3xl mx-auto">
               <h3 className="text-xl font-semibold mb-2 text-center" style={{ color: 'var(--text-primary)' }}>Review Your Pool</h3>
-              
+
               <div className="rounded-xl p-3 flex items-start gap-3 mb-3" style={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border-color)' }}>
                 <CheckCircle2 className="h-6 w-6 text-green-600 flex-shrink-0 mt-0.5" />
                 <div>
@@ -473,9 +480,9 @@ const CreatePoolModal = () => {
                 {/* Content URL */}
                 <div className="rounded-xl p-3" style={{ backgroundColor: 'var(--bg-primary)', border: '1px solid var(--border-color)' }}>
                   <p className="text-sm font-medium" style={{ color: 'var(--text-secondary)' }}>Content URL</p>
-                  <a 
-                    href={formData.contentUrl} 
-                    target="_blank" 
+                  <a
+                    href={formData.contentUrl}
+                    target="_blank"
                     rel="noopener noreferrer"
                     className="hover:underline break-all"
                     style={{ color: 'var(--text-primary)' }}
@@ -500,9 +507,9 @@ const CreatePoolModal = () => {
               Back
             </button>
           )}
-          
+
           <div className="flex-1" />
-          
+
           {step < 3 ? (
             <button
               onClick={handleNext}

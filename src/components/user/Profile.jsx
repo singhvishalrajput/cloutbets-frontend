@@ -9,7 +9,7 @@ const Profile = () => {
   useEffect(() => {
     try {
       // Get user data from localStorage
-      const storedData = localStorage.getItem('userData');
+      const storedData = localStorage.getItem('user');
       
       if (storedData) {
         const data = JSON.parse(storedData);
@@ -26,7 +26,7 @@ const Profile = () => {
   }, []);
 
   const handleSignOut = () => {
-    localStorage.removeItem('userData');
+    localStorage.removeItem('user');
     window.location.href = '/';
   };
 

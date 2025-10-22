@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Menu, X, LogOut, Moon, Sun } from 'lucide-react';
+import { Shield, Menu, X, LogOut, Moon, Sun, User } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Container from '../common/Container';
 import Button from '../common/Button';
@@ -81,7 +81,14 @@ const Navbar = ({ isScrolled, onCreatePool }) => {
               
               {isAuthenticated ? (
                 <>
-                  <Button variant="secondary" size="sm" onClick={onCreatePool}>Create Pool</Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate('/profile')}
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    Profile
+                  </Button>
                   <Button
                     variant="ghost"
                     size="sm"
@@ -150,12 +157,13 @@ const Navbar = ({ isScrolled, onCreatePool }) => {
               <div className="flex flex-col gap-2">
                 {isAuthenticated ? (
                   <>
-                    <Button 
-                      variant="secondary"
-                      onClick={onCreatePool}
+                    <Button
+                      variant="ghost"
+                      onClick={() => navigate('/profile')}
                       className="w-full"
                     >
-                      Create Pool
+                      <User className="h-4 w-4 mr-2" />
+                      Profile
                     </Button>
                     <Button
                       variant="ghost"

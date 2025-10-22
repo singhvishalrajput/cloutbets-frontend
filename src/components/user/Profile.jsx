@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { User, Mail, Calendar, MapPin, Link as LinkIcon, Twitter } from 'lucide-react';
+import { User, Calendar, MapPin, ExternalLink, Twitter, LogOut } from 'lucide-react';
 
 const Profile = () => {
   const [userData, setUserData] = useState(null);
@@ -7,32 +7,28 @@ const Profile = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Get URL parameters
-    const urlParams = new URLSearchParams(window.location.search);
-    
-    // Check if we have OAuth callback data
-    const hasCallbackData = urlParams.toString().length > 0;
-    
-    if (hasCallbackData) {
-      // Convert URL parameters to object
-      const data = {};
-      for (const [key, value] of urlParams.entries()) {
-        try {
-          // Try to parse JSON values
-          data[key] = JSON.parse(value);
-        } catch {
-          // If not JSON, keep as string
-          data[key] = value;
-        }
-      }
+    try {
+      // Get user data from localStorage
+      const storedData = localStorage.getItem('userData');
       
-      setUserData(data);
-      setLoading(false);
-    } else {
-      setError('No user data found. Please sign in with X.');
+      if (storedData) {
+        const data = JSON.parse(storedData);
+        setUserData(data);
+        setLoading(false);
+      } else {
+        setError('No user data found. Please sign in with X.');
+        setLoading(false);
+      }
+    } catch (err) {
+      setError('Failed to load user data. Please try signing in again.');
       setLoading(false);
     }
   }, []);
+
+  const handleSignOut = () => {
+    localStorage.removeItem('userData');
+    window.location.href = '/';
+  };
 
   if (loading) {
     return (
@@ -69,6 +65,8 @@ const Profile = () => {
     );
   }
 
+  const publicMetrics = userData?.public_metrics || {};
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 p-4 py-12">
       <div className="max-w-4xl mx-auto">
@@ -77,19 +75,23 @@ const Profile = () => {
           <div className="h-32 bg-gradient-to-r from-blue-600 to-purple-600"></div>
           <div className="px-6 pb-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4 -mt-16">
-              <div className="w-32 h-32 rounded-full border-4 border-white bg-gray-200 flex items-center justify-center text-4xl font-bold text-gray-600 shadow-lg">
+              <div className="w-32 h-32 rounded-full border-4 border-white bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg">
                 {userData?.name?.charAt(0)?.toUpperCase() || userData?.username?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div className="flex-1">
                 <h1 className="text-3xl font-bold text-gray-900">
-                  {userData?.name || userData?.username || 'User'}
+                  {userData?.name || 'User'}
                 </h1>
                 {userData?.username && (
                   <p className="text-gray-600 font-medium">@{userData.username}</p>
                 )}
               </div>
-              <button className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-2 rounded-xl font-semibold hover:from-blue-700 hover:to-purple-700 transition-all">
-                Edit Profile
+              <button 
+                onClick={handleSignOut}
+                className="flex items-center gap-2 bg-red-500 text-white px-6 py-2 rounded-xl font-semibold hover:bg-red-600 transition-all"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
               </button>
             </div>
 
@@ -106,7 +108,7 @@ const Profile = () => {
               )}
               {userData?.url && (
                 <div className="flex items-center gap-2">
-                  <LinkIcon className="h-4 w-4" />
+                  <ExternalLink className="h-4 w-4" />
                   <a href={userData.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
                     {userData.url}
                   </a>
@@ -115,52 +117,92 @@ const Profile = () => {
               {userData?.created_at && (
                 <div className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" />
-                  <span>Joined {new Date(userData.created_at).toLocaleDateString()}</span>
+                  <span>Joined {new Date(userData.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</span>
                 </div>
               )}
             </div>
           </div>
         </div>
 
-        {/* Raw Data Display */}
-        <div className="bg-white rounded-2xl shadow-xl p-6">
-          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
-            <User className="h-6 w-6" />
-            OAuth Response Data
-          </h2>
-          <div className="bg-gray-50 rounded-xl p-4 overflow-x-auto">
-            <pre className="text-sm text-gray-800 whitespace-pre-wrap break-words">
-              {JSON.stringify(userData, null, 2)}
-            </pre>
-          </div>
-        </div>
-
-        {/* User Stats (if available) */}
-        {(userData?.followers_count !== undefined || userData?.following_count !== undefined || userData?.tweet_count !== undefined) && (
-          <div className="bg-white rounded-2xl shadow-xl p-6 mt-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Statistics</h2>
-            <div className="grid grid-cols-3 gap-4">
-              {userData?.followers_count !== undefined && (
+        {/* User Stats */}
+        {publicMetrics && Object.keys(publicMetrics).length > 0 && (
+          <div className="bg-white rounded-2xl shadow-xl p-6 mb-6">
+            <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+              <Twitter className="h-6 w-6 text-blue-500" />
+              X Account Statistics
+            </h2>
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              {publicMetrics.followers_count !== undefined && (
                 <div className="text-center p-4 bg-blue-50 rounded-xl">
-                  <p className="text-2xl font-bold text-blue-600">{userData.followers_count.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-blue-600">{publicMetrics.followers_count.toLocaleString()}</p>
                   <p className="text-sm text-gray-600">Followers</p>
                 </div>
               )}
-              {userData?.following_count !== undefined && (
+              {publicMetrics.following_count !== undefined && (
                 <div className="text-center p-4 bg-purple-50 rounded-xl">
-                  <p className="text-2xl font-bold text-purple-600">{userData.following_count.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-purple-600">{publicMetrics.following_count.toLocaleString()}</p>
                   <p className="text-sm text-gray-600">Following</p>
                 </div>
               )}
-              {userData?.tweet_count !== undefined && (
+              {publicMetrics.tweet_count !== undefined && (
                 <div className="text-center p-4 bg-pink-50 rounded-xl">
-                  <p className="text-2xl font-bold text-pink-600">{userData.tweet_count.toLocaleString()}</p>
+                  <p className="text-2xl font-bold text-pink-600">{publicMetrics.tweet_count.toLocaleString()}</p>
                   <p className="text-sm text-gray-600">Posts</p>
+                </div>
+              )}
+              {publicMetrics.like_count !== undefined && (
+                <div className="text-center p-4 bg-red-50 rounded-xl">
+                  <p className="text-2xl font-bold text-red-600">{publicMetrics.like_count.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">Likes</p>
+                </div>
+              )}
+              {publicMetrics.media_count !== undefined && (
+                <div className="text-center p-4 bg-green-50 rounded-xl">
+                  <p className="text-2xl font-bold text-green-600">{publicMetrics.media_count.toLocaleString()}</p>
+                  <p className="text-sm text-gray-600">Media</p>
                 </div>
               )}
             </div>
           </div>
         )}
+
+        {/* Account Details */}
+        <div className="bg-white rounded-2xl shadow-xl p-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+            <User className="h-6 w-6" />
+            Account Details
+          </h2>
+          <div className="space-y-3">
+            <div className="flex justify-between py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">User ID</span>
+              <span className="text-gray-900 font-mono text-sm">{userData?.id || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Username</span>
+              <span className="text-gray-900">@{userData?.username || 'N/A'}</span>
+            </div>
+            <div className="flex justify-between py-3 border-b border-gray-100">
+              <span className="text-gray-600 font-medium">Display Name</span>
+              <span className="text-gray-900">{userData?.name || 'N/A'}</span>
+            </div>
+            {publicMetrics?.listed_count !== undefined && (
+              <div className="flex justify-between py-3 border-b border-gray-100">
+                <span className="text-gray-600 font-medium">Listed Count</span>
+                <span className="text-gray-900">{publicMetrics.listed_count.toLocaleString()}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Raw Data (for debugging) */}
+        <div className="bg-white rounded-2xl shadow-xl p-6 mt-6">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Raw Data (Debug)</h2>
+          <div className="bg-gray-50 rounded-xl p-4 overflow-x-auto">
+            <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
+              {JSON.stringify(userData, null, 2)}
+            </pre>
+          </div>
+        </div>
       </div>
     </div>
   );
